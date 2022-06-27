@@ -1,3 +1,19 @@
+##################################
+#INVERSION SCRIPT FOR ORANGE BASIN SECTION R3
+#RUNS THE NONLINEAR, NONLOCAL MODEL
+#AND USES ALL SEISMIC REFLECTORS TO CALCULATE MISFIT
+
+#Shobe, C.M., Braun, J., Yuan, X.P., Campforts, B., Gailleton, B., 
+#Baby, G., Guillocheau, F., and Robin, C. (2022) Inverting passive
+#margin stratigraphy for marine sediment transport dynamics over
+#geologic time, Basin Research.
+
+#Please cite the above paper when using this data or code.
+
+#Model and inversion script written by Charlie Shobe (West Virginia University)
+#Archived in 2022 in conjunction with resubmission of Shobe et al. (2022).
+##################################
+
 import pyabc
 import numpy as np
 import scipy.stats as st
@@ -14,6 +30,9 @@ min_epsilon = 0.01 #misfit at which inversion will stop; set small to force scri
 max_n_pops = 15 #max number of populations if epsilon isn't reached
 
 #process parameter ranges
+#note that convention in pyABC is (min, range) NOT (min, max).
+#so true max is actually (min + max) as defined below
+
 erode__travel_dist_min = 100000
 erode__travel_dist_max = 200000
 
@@ -46,14 +65,11 @@ class ProfileZ:
     """Compute the evolution of the elevation (z) profile"""
     
     h_vars = xs.group("h_vars") #allows for multiple processes influencing; say diffusion and subsidence
-    #br_vars = xs.group("br_vars") #allows for multiple processes influencing; say diffusion and subsidence
 
     z = xs.variable(
         dims="x", intent="inout", description="surface elevation z", attrs={"units": "m"}
     )
-    #br = xs.variable(
-    #    dims=[(), "x"], intent="in", description="bedrock_elevation", attrs={"units": "m"}
-    #)
+
     br = xs.variable(
         dims=[(), "x"], intent="in", description="bedrock_elevation", attrs={"units": "m"}
     )
@@ -62,11 +78,9 @@ class ProfileZ:
     )
 
     def run_step(self):
-        #self._delta_br = sum((br for br in self.br_vars))
         self._delta_h = sum((h for h in self.h_vars))
 
     def finalize_step(self):
-        #self.br += self._delta_br #update bedrock surface
         self.h += self._delta_h #update sediment thickness
         self.z = self.br + self.h #add sediment to bedrock to get topo elev.
         
@@ -83,7 +97,7 @@ def evolve_remaining_nodes(first_marine_node, z, slope, erosion, k_arr, s_crit, 
             if z[i] > sea_level:
                 deposition[i] = 0
         else: #this is the irregular, left-draining case
-            deposition[i] = qs[i-1] / spacing#(self.qs[i-1] * (1 + np.minimum(1, np.power(self.slope[i] / self.s_crit, 2)))) / self.spacing#self.travel_dist #self.qs[i-1] / self.spacing
+            deposition[i] = qs[i-1] / spacing
             erosion[i] = 0
             if z[i] > sea_level:
                 deposition[i] = 0
@@ -154,11 +168,9 @@ class ErosionDeposition:
     qs = xs.variable(
         dims="x", intent="out", description="qs", attrs={"units": "m2/yr"}
     )
-    #dbr = xs.variable(dims="x", intent="out", groups="br_vars")
     dh = xs.variable(dims="x", intent="out", groups="h_vars")
     
     spacing = xs.foreign(UniformGrid1D, "spacing")
-    #x = xs.foreign(UniformGrid1D, "x")
     z = xs.foreign(ProfileZ, "z")
     br = xs.foreign(ProfileZ, "br")
     h = xs.foreign(ProfileZ, "h")
@@ -197,7 +209,7 @@ class ErosionDeposition:
 
         else:  #this is the irregular, left-draining case
             self.erosion[first_marine_node] = 0 #because slope = 0
-            self.deposition[first_marine_node] = qs_in / self.spacing #(self.qs_in * (1 + np.minimum(1, np.power(self.slope[first_marine_node] / self.s_crit, 2)))) / self.travel_dist #because slope = 0 #self.qs_in / self.travel_dist
+            self.deposition[first_marine_node] = qs_in / self.spacing
         self.dh_dt[first_marine_node] = (-self.erosion[first_marine_node] + self.deposition[first_marine_node]) / (1 - self.sed_porosity)
         self.dh[first_marine_node] = self.dh_dt[first_marine_node] * dt
         self.qs[first_marine_node] = np.maximum(qs_in + (self.erosion[first_marine_node] - self.deposition[first_marine_node]) * self.spacing, 0.)
@@ -230,33 +242,22 @@ class ErosionDeposition:
         #here, have a chance to set the final dh by differencing new h (z0) and old h (h)
         self.dh[:] = z0[:] - self.h[:]
         
-        #finalize changes to bedrock (subsidence) and sediment thickness (e/d)
-        #self.dbr = (self.subsidence * dt)
-        
 @xs.process
 class InitBasinGeom:
     """
-    Give initial basin elevation field as a function of x:
-    z = exp(- (x - a) / b) + c
+    Set up initial basin geometry
     """
-    
-    #a = xs.variable(description="shift parameter", static=True)
-    #b = xs.variable(description="scale parameter", static=True)
-    #c = xs.variable(description="initial basin floor altitude", static=True)
-    #d = xs.variable(description="x multiplier", static=True)
 
     init_br = xs.variable(dims="x", description="shift parameter", static=True)
     
     x = xs.foreign(UniformGrid1D, "x")
     z = xs.foreign(ProfileZ, "z", intent="out")
-    #br = xs.foreign(ProfileZ, "br", intent="in")
     h = xs.foreign(ProfileZ, "h", intent="out")
 
     def initialize(self):
-        #self.br = np.exp(- (self.x * self.d - self.a) / self.b) + self.c #build the initial topography
         self.h = np.zeros(len(self.x)) #initial sediment thickness is 0
-        self.z = np.zeros(len(self.x)) + self.init_br #self.br#(np.exp(- (self.x * self.d - self.a) / self.b) + self.c) + self.h
-        
+        self.z = np.zeros(len(self.x)) + self.init_br 
+
 marine = xs.Model(
     {
         "grid": UniformGrid1D,
@@ -275,19 +276,13 @@ initial_bedrock = bedrock_elev_array[0, :]
 qs_file = '/scratch/cs00048/marine/sections/orange_section_R3/prepro/qs_array.npy'
 qs_array = np.load(qs_file)
 qs_array = xr.DataArray(qs_array, dims=['time'])
-#this is loading in the full m3/yr numbers directly from Baby et al 2019.
 
-#so need to divide by the basin width before piping it into the model.
-#import best-fit basin width from pyABC inference
-#basin_width_file = '../step1_qs_in/best_fit_basin_width.npy'
-#basin_width = np.load(basin_width_file)[0] #first and only element of array
-#qs_array = qs_array[:] / basin_width #now we're in the right units for the model
-
+#set up model inputs
 in_ds = xs.create_setup(
 			model=marine,
 			clocks={
 				'time': np.arange(0, 130000000, 1000),
-				'otime': np.array([0, 17000000, 30000000, 36000000, 49000000, 64000000, 100000000, 119000000, 129999000]) #np.array([19999000])
+				'otime': np.array([0, 17000000, 30000000, 36000000, 49000000, 64000000, 100000000, 119000000, 129999000])
 			},
 			master_clock='time',
 			input_vars={
@@ -311,20 +306,15 @@ in_ds = xs.create_setup(
             output_vars={'profile__z': 'otime', 'profile__br': 'otime', 'profile__h': 'otime'}
 )
 
-#here, I will modify the model definition to be
-#something like "run" fn from my previous inference script
+#set up an instance of the model to feed to pyABC
 def model(parameter):
     model = marine.clone()
-    #sample = parameter
     with model: 
-        #try writing param values out
+        #write param values out
         travel_dist = parameter['erode__travel_dist']
         k_factor = parameter['erode__k_factor']
         k_depth = parameter['erode__k_depth_scale']
         s_crit = parameter['erode__s_crit']
-        #string = str(travel_dist) + ',' + str(k_factor) + ',' + str(k_depth) + ',' + str(s_crit) + '\n'
-        #with open('all_params.csv','a') as file:
-        #    file.write(string) 
         ds_out = (
             in_ds
             .xsimlab.update_vars(input_vars=parameter)
@@ -358,7 +348,8 @@ prior = pyabc.Distribution(erode__travel_dist=pyabc.RV("uniform", erode__travel_
                            erode__k_factor=pyabc.RV("uniform", erode__k_factor_min, erode__k_factor_max),
                            erode__k_depth_scale=pyabc.RV("uniform", erode__k_depth_scale_min, erode__k_depth_scale_max),
                            erode__s_crit=pyabc.RV("uniform", erode__s_crit_min, erode__s_crit_max))
-                           
+
+#calculate misfit
 def distance(x, y): #x is simulated, y is observed
 
 	#CALCULATE POSITION OF REMAINING LAYERS; PLOT. #DEFORM THE MODELED LAYERS, NOT THE DATA
@@ -375,34 +366,33 @@ def distance(x, y): #x is simulated, y is observed
 	layer_z_values[-1, :] = modeled_z[-1, :]
 
 	for i in range(7):
-		#mass from basement to top of U8
-		depth_top = np.array(modeled_h[-1, :]) #depth to bedrock
-		depth_bottom = np.zeros(len(modeled_h[-1, :])) #depth to bedrock
+		#integrate mass in lower layer
+		#define layer depths for lower layer
+		depth_top = np.array(modeled_h[-1, :])
+		depth_bottom = np.zeros(len(modeled_h[-1, :]))
 
 		integral_top = phi * z_star * np.exp(-depth_top/z_star) + depth_top
 		integral_bottom = phi * z_star * np.exp(-depth_bottom/z_star) + depth_bottom
 
 		M8 = (integral_top - integral_bottom)
 
-		#mass from basement to top of U7
-		depth_top = np.array(modeled_h[i, :]) #depth to bedrock
-		depth_bottom = np.zeros(len(modeled_h[i, :])) #depth to bedrock
-
+		#integrate mass in upper layer
+		#define layer depths for upper layer
+		depth_top = np.array(modeled_h[i, :])
+		depth_bottom = np.zeros(len(modeled_h[i, :]))
 
 		integral_top = phi * z_star * np.exp(-depth_top/z_star) + depth_top
 		integral_bottom = phi * z_star * np.exp(-depth_bottom/z_star) + depth_bottom
-
 
 		M7 = (integral_top - integral_bottom)
 
 		m_over = M8 - M7
 		m_over[m_over < 0] = 0
 
-		#starting with layer U7 (U8 is known b/c it's the modern):
+		#iterate to find layer elevation
 		tolerance = 1.
 		diff = np.repeat(10., len(modeled_h[-1, :]))
 		ztop = np.zeros(len(modeled_h[-1, :]))
-		#ztop[:] = np.repeat(0., len(modeled[-1, :]))#R1_bestfit.profile__z[-1, :] - R1_bestfit.profile__z[i, :]#np.repeat(0., len(R1_top_surface)) #initial guess for DEPTH OF THE TOP OF THE LAYER
 
 		while np.any(diff > tolerance):
 			ztop_new = ztop - ((ztop - z_star * phi * (1-np.exp(-ztop/z_star)) - m_over) / (1 - phi * np.exp(-ztop/z_star)))
@@ -410,43 +400,31 @@ def distance(x, y): #x is simulated, y is observed
 			ztop[:] = ztop_new[:]
 		
 		layer_z_values[i, :] = layer_z_values[-1, :] - ztop
-		
+
+	#truncate layers where any overlying layer elevation is less than layer elevation
 	for i in range(7):
 		for j in range(i + 1, 7):
 			layer_z_values[i, :][layer_z_values[i, :] > layer_z_values[j, :]] = layer_z_values[j, :][layer_z_values[i, :] > layer_z_values[j, :]]
 		
 		#recalculate sed depth so that it accounts for truncation by overlying layers
 		x_compacted[i, :] = layer_z_values[i, :] - modeled_br[i, :]
-		#top_sed_thickness = np.array(modeled_h[-1, :])
-		#compacted_thickness = top_sed_thickness - ztop
-		#x_compacted[i, :] = compacted_thickness
-		
-		#R11.plot(R1_bestfit.x, R1_bestfit.profile__z[-1, :]-ztop, color = 'r')
 
-    #the first one uses a fixed uncertainty
-    #66 is number on nodes - 1 to eliminate shoreline BC node
-    #8 is number of layers to compare
+    #calculate misfit
 	misfit = np.sqrt((1/(125 * 8)) * np.sum(np.power(y["data"] - x_compacted, 2)/np.power(10,2)))
-    #with open('all_distances.csv','a') as file:
-    #    file.write(str(np.array(misfit)) + '\n')
+
         
     #write params
 	params_list = x["params_for_record"]
 	string = str(params_list[0]) + ',' + str(params_list[1]) + ',' + str(params_list[2]) + ',' + str(params_list[3]) + ',' + str(np.array(misfit)) + '\n'
 	with open('/scratch/cs00048/marine/sections/orange_section_R3/step2_params/all_params_' + str(run_number).zfill(3) + '.csv','a') as file:
 		file.write(string) 
-    #the second one uses a fixed percent uncertainty, such that
-    #thicker piles of sediment have greater uncertainty
-    #139 is number of comparison points
-    #0.05 is percentage of observed to call "measurement uncertainty"
-    #misfit = (1/139) * np.sqrt(np.sum(np.power(y["data"] - x["data"], 2)/np.power(0.05 * y["data"],2)))
-    
+
 	return np.double(misfit)
-    
+
+#set up pyABC ABC-SMC algorithm
 sampler = pyabc.sampler.MulticoreEvalParallelSampler(n_procs = n_procs)
 abc = pyabc.ABCSMC(model, prior, distance, sampler = sampler,
                    population_size = pop_size)
-#both of these n_proc numbers can be up to 140 (memory limit)
 
 db_path = ("sqlite:///" +
            os.path.join(tempfile.gettempdir(), "test.db"))
@@ -476,6 +454,7 @@ data_U8 = U8_surface[1:] - br_surface[1:]
 observation = np.stack((data_U1, data_U2, data_U3, data_U4, data_U5, data_U6, data_U7, data_U8), axis = 0)
 abc.new(db_path, {"data": observation})
 
+#run pyABC ABC-SMC algorithm
 history = abc.run(minimum_epsilon=min_epsilon, max_nr_populations=max_n_pops)
 
 #save history dataframe as csv
