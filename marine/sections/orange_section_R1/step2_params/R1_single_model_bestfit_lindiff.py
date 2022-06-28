@@ -1,12 +1,30 @@
+##################################
+#BEST-FIT MODEL RUN FOR ORANGE BASIN SECTION R1
+#RUNS ONE REALIZATION OF THE LINEAR, LOCAL MODEL 
+#THAT USES BEST-FIT PARAMETER VALUES DETERMINED FROM 
+#PRIOR PARAMETER SPACE SEARCH USING ABC-SMC
+
+#Shobe, C.M., Braun, J., Yuan, X.P., Campforts, B., Gailleton, B., 
+#Baby, G., Guillocheau, F., and Robin, C. (2022) Inverting passive
+#margin stratigraphy for marine sediment transport dynamics over
+#geologic time, Basin Research.
+
+#Please cite the above paper when using this data or code.
+
+#Model and inversion script written by Charlie Shobe (West Virginia University)
+#Archived in 2022 in conjunction with resubmission of Shobe et al. (2022).
+##################################
+
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import xarray as xr
 import xsimlab as xs
 
 #set_run_number
-run_number ='ldml2'
+#used to find the best-fit parameter values from the inversion results
+#as well as to name the output from this best-fit simulation
+run_number = 'ldml2'
 
 @xs.process
 class UniformGrid1D:
@@ -28,14 +46,11 @@ class ProfileZ:
     """Compute the evolution of the elevation (z) profile"""
     
     h_vars = xs.group("h_vars") #allows for multiple processes influencing; say diffusion and subsidence
-    #br_vars = xs.group("br_vars") #allows for multiple processes influencing; say diffusion and subsidence
 
     z = xs.variable(
         dims="x", intent="inout", description="surface elevation z", attrs={"units": "m"}
     )
-    #br = xs.variable(
-    #    dims=[(), "x"], intent="in", description="bedrock_elevation", attrs={"units": "m"}
-    #)
+
     br = xs.variable(
         dims=[(), "x"], intent="in", description="bedrock_elevation", attrs={"units": "m"}
     )
@@ -44,11 +59,9 @@ class ProfileZ:
     )
 
     def run_step(self):
-        #self._delta_br = sum((br for br in self.br_vars))
         self._delta_h = sum((h for h in self.h_vars))
 
     def finalize_step(self):
-        #self.br += self._delta_br #update bedrock surface
         self.h += self._delta_h #update sediment thickness
         self.z = self.br + self.h #add sediment to bedrock to get topo elev.
         
@@ -65,7 +78,7 @@ def evolve_remaining_nodes(first_marine_node, z, slope, erosion, k_arr, s_crit, 
             if z[i] > sea_level:
                 deposition[i] = 0
         else: #this is the irregular, left-draining case
-            deposition[i] = qs[i-1] / spacing#(self.qs[i-1] * (1 + np.minimum(1, np.power(self.slope[i] / self.s_crit, 2)))) / self.spacing#self.travel_dist #self.qs[i-1] / self.spacing
+            deposition[i] = qs[i-1] / spacing
             erosion[i] = 0
             if z[i] > sea_level:
                 deposition[i] = 0
@@ -136,11 +149,9 @@ class ErosionDeposition:
     qs = xs.variable(
         dims="x", intent="out", description="qs", attrs={"units": "m2/yr"}
     )
-    #dbr = xs.variable(dims="x", intent="out", groups="br_vars")
     dh = xs.variable(dims="x", intent="out", groups="h_vars")
     
     spacing = xs.foreign(UniformGrid1D, "spacing")
-    #x = xs.foreign(UniformGrid1D, "x")
     z = xs.foreign(ProfileZ, "z")
     br = xs.foreign(ProfileZ, "br")
     h = xs.foreign(ProfileZ, "h")
@@ -179,7 +190,7 @@ class ErosionDeposition:
 
         else:  #this is the irregular, left-draining case
             self.erosion[first_marine_node] = 0 #because slope = 0
-            self.deposition[first_marine_node] = qs_in / self.spacing #(self.qs_in * (1 + np.minimum(1, np.power(self.slope[first_marine_node] / self.s_crit, 2)))) / self.travel_dist #because slope = 0 #self.qs_in / self.travel_dist
+            self.deposition[first_marine_node] = qs_in / self.spacing
         self.dh_dt[first_marine_node] = (-self.erosion[first_marine_node] + self.deposition[first_marine_node]) / (1 - self.sed_porosity)
         self.dh[first_marine_node] = self.dh_dt[first_marine_node] * dt
         self.qs[first_marine_node] = np.maximum(qs_in + (self.erosion[first_marine_node] - self.deposition[first_marine_node]) * self.spacing, 0.)
@@ -201,7 +212,6 @@ class ErosionDeposition:
     
         
         #compaction routine
-        #def compaction(porosity, porosity_depth_scale, nn, dh, zi):
         nn = len(self.z)
         z0 = np.zeros(nn)
         #set initial guess for z0:
@@ -212,32 +222,21 @@ class ErosionDeposition:
         #here, have a chance to set the final dh by differencing new h (z0) and old h (h)
         self.dh[:] = z0[:] - self.h[:]
         
-        #finalize changes to bedrock (subsidence) and sediment thickness (e/d)
-        #self.dbr = (self.subsidence * dt)
-        
 @xs.process
 class InitBasinGeom:
     """
-    Give initial basin elevation field as a function of x:
-    z = exp(- (x - a) / b) + c
+    Set up initial basin geometry
     """
-    
-    #a = xs.variable(description="shift parameter", static=True)
-    #b = xs.variable(description="scale parameter", static=True)
-    #c = xs.variable(description="initial basin floor altitude", static=True)
-    #d = xs.variable(description="x multiplier", static=True)
 
     init_br = xs.variable(dims="x", description="shift parameter", static=True)
     
     x = xs.foreign(UniformGrid1D, "x")
     z = xs.foreign(ProfileZ, "z", intent="out")
-    #br = xs.foreign(ProfileZ, "br", intent="in")
     h = xs.foreign(ProfileZ, "h", intent="out")
 
     def initialize(self):
-        #self.br = np.exp(- (self.x * self.d - self.a) / self.b) + self.c #build the initial topography
         self.h = np.zeros(len(self.x)) #initial sediment thickness is 0
-        self.z = np.zeros(len(self.x)) + self.init_br #self.br#(np.exp(- (self.x * self.d - self.a) / self.b) + self.c) + self.h
+        self.z = np.zeros(len(self.x)) + self.init_br
         
 marine = xs.Model(
     {
@@ -249,7 +248,7 @@ marine = xs.Model(
 )
 
 
-#need to import basement elevation and qs time series after they were exported by the prepro notebook
+#need to import basement elevation and qs time series after they were exported by the prepro script
 bedrock_file = '../prepro/bedrock_elev_array.npy'
 br = np.load(bedrock_file)
 bedrock_elev_array = xr.DataArray(br, dims=['time', 'x'])
@@ -258,21 +257,19 @@ initial_bedrock = bedrock_elev_array[0, :]
 qs_file = '../prepro/qs_array.npy'
 qs_array = np.load(qs_file)
 qs_array = xr.DataArray(qs_array, dims=['time'])
-#this is loading in the full m3/yr numbers directly from Baby et al 2019.
 
 #load best fit parameters
 best_fit_params_file = 'best_fit_params_' + str(run_number).zfill(3) + '.npy'
 best_fit_params = np.load(best_fit_params_file)
-#best_fit_lambda = best_fit_params[0]
 best_fit_k = best_fit_params[0]
 best_fit_depth_scale = best_fit_params[1]
-#best_fit_sc = best_fit_params[3]
 
+#set up model inputs
 in_ds = xs.create_setup(
 	model=marine,
 	clocks={
 		'time': np.arange(0, 130000000, 1000),
-		'otime': np.array([0, 17000000, 30000000, 36000000, 49000000, 64000000, 100000000, 119000000, 129999000])#np.append(np.arange(0, 130000000, 1000), 129999000)#np.append(np.arange(0, 130000000, 1000000), 129999000) #np.array([19999000])
+		'otime': np.array([0, 17000000, 30000000, 36000000, 49000000, 64000000, 100000000, 119000000, 129999000])
 	},
 	master_clock='time',
 	input_vars={
@@ -294,6 +291,7 @@ in_ds = xs.create_setup(
 	output_vars={'profile__z': 'otime', 'profile__br': 'otime', 'profile__h': 'otime'}
 )
 
+#run a single instance of the model and store detailed output
 with marine: 
     out_ds = in_ds.xsimlab.run(store='best_fit_' + str(run_number).zfill(3) + '.zarr')
     
