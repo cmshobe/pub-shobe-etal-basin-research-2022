@@ -457,10 +457,8 @@ return_df.to_csv('/scratch/cs00048/marine/sections/orange_section_R6/step2_param
 sorted_by_fit = return_df.sort_values('distance')
 particle_id_of_best_fit = sorted_by_fit.iloc[0, 4]
 best_fit_params = sorted_by_fit[sorted_by_fit['particle_id'] == particle_id_of_best_fit]
-#best_fit_travel_dist = best_fit_params['par_val'][best_fit_params['par_name'] == 'erode__travel_dist']
 best_fit_k = best_fit_params['par_val'][best_fit_params['par_name'] == 'erode__k_factor']
 best_fit_depth_scale = best_fit_params['par_val'][best_fit_params['par_name'] == 'erode__k_depth_scale']
-#best_fit_s_crit = best_fit_params['par_val'][best_fit_params['par_name'] == 'erode__s_crit']
 best_fit_params = np.array([np.float(best_fit_k.iloc[0]), 
                            np.float(best_fit_depth_scale.iloc[0])]
                           )
