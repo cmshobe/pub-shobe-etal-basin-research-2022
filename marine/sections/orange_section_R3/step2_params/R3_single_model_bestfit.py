@@ -24,7 +24,7 @@ import xsimlab as xs
 #set_run_number
 #used to find the best-fit parameter values from the inversion results
 #as well as to name the output from this best-fit simulation
-run_number = 'ml1'
+run_number = 'ml2'
 
 @xs.process
 class UniformGrid1D:
