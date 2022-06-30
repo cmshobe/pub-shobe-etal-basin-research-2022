@@ -1,5 +1,5 @@
 # pub-shobe-etal-basin-research-2022
-Code to accompany "Inverting passive margin stratigraphy for marine sediment transport dynamics over geologic time"
+Code to accompany "Inverting passive margin stratigraphy for marine sediment transport dynamics over geologic time" by Charles M. Shobe et al. (2022; *Basin Research*). Please cite the paper if you use any of this material; this is how scientists get credit for their efforts to make their code [FAIR](https://www.go-fair.org/fair-principles/)!
 
 See the preprint here: https://doi.org/10.31223/X5WS72
 
