@@ -1,0 +1,369 @@
+{
+    "metadata": {
+        ".zattrs": {},
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "erode__basin_width/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__basin_width/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "basin width"
+        },
+        "erode__k_depth_scale/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__k_depth_scale/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "k depth scale"
+        },
+        "erode__k_factor/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__k_factor/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "k factor"
+        },
+        "erode__qs_in/.zarray": {
+            "chunks": [
+                32500
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                130000
+            ],
+            "zarr_format": 2
+        },
+        "erode__qs_in/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ],
+            "description": "sediment_flux_in"
+        },
+        "erode__s_crit/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__s_crit/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "marine_critical_slope"
+        },
+        "erode__sea_level/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__sea_level/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "sea level"
+        },
+        "erode__sed_porosity/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__sed_porosity/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "marine_sediment_porosity"
+        },
+        "erode__sed_porosity_depth_scale/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__sed_porosity_depth_scale/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "marine_sediment_porosity_depth_scale"
+        },
+        "erode__travel_dist/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "erode__travel_dist/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "marine_travel_distance"
+        },
+        "grid__length/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "grid__length/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "grid total length"
+        },
+        "grid__spacing/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "grid__spacing/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "description": "grid_spacing"
+        },
+        "init__init_br/.zarray": {
+            "chunks": [
+                138
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                138
+            ],
+            "zarr_format": 2
+        },
+        "init__init_br/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "x"
+            ],
+            "description": "shift parameter"
+        },
+        "otime/.zarray": {
+            "chunks": [
+                9
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i8",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                9
+            ],
+            "zarr_format": 2
+        },
+        "otime/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "otime"
+            ],
+            "__xsimlab_output_clock__": 1
+        },
+        "profile__br/.zarray": {
+            "chunks": [
+                9,
+                138
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                9,
+                138
+            ],
+            "zarr_format": 2
+        },
+        "profile__br/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "otime",
+                "x"
+            ],
+            "description": "bedrock_elevation",
+            "units": "m"
+        },
+        "profile__h/.zarray": {
+            "chunks": [
+                9,
+                138
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                9,
+                138
+            ],
+            "zarr_format": 2
+        },
+        "profile__h/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "otime",
+                "x"
+            ],
+            "description": "sed_thickness",
+            "units": "m"
+        },
+        "profile__z/.zarray": {
+            "chunks": [
+                9,
+                138
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                9,
+                138
+            ],
+            "zarr_format": 2
+        },
+        "profile__z/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "otime",
+                "x"
+            ],
+            "description": "surface elevation z",
+            "units": "m"
+        },
+        "time/.zarray": {
+            "chunks": [
+                32500
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i8",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                130000
+            ],
+            "zarr_format": 2
+        },
+        "time/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ],
+            "__xsimlab_master_clock__": 1,
+            "__xsimlab_output_clock__": 1
+        },
+        "x/.zarray": {
+            "chunks": [
+                138
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                138
+            ],
+            "zarr_format": 2
+        },
+        "x/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "x"
+            ]
+        }
+    },
+    "zarr_consolidated_format": 1
+}
