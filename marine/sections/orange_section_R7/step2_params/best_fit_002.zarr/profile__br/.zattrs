@@ -1,0 +1,8 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "otime",
+        "x"
+    ],
+    "description": "bedrock_elevation",
+    "units": "m"
+}
