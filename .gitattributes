@@ -1,1 +1,2 @@
 /marine/sections/orange_section_R1/prepro/bedrock_elev_array.npy filter=lfs diff=lfs merge=lfs -text
+/marine/sections/orange_section_R3/prepro/bedrock_elev_array.npy filter=lfs diff=lfs merge=lfs -text
